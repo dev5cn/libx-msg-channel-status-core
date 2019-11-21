@@ -44,9 +44,6 @@ private:
 	bool loadXscServerCfg(XMLElement* root); 
 	bool loadXmsgNeH2nCfg(XMLElement* root); 
 	bool loadXmsgNeN2hCfg(XMLElement* root); 
-	bool loadMysqlCfg(XMLElement* root); 
-	bool loadMongodbCfg(XMLElement* root); 
-	bool loadKafkaProdCfg(XMLElement* root); 
 	bool loadMiscCfg(XMLElement* root); 
 };
 

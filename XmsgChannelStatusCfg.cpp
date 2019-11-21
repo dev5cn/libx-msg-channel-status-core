@@ -62,8 +62,6 @@ shared_ptr<XmsgChannelStatusCfg> XmsgChannelStatusCfg::load(const char* path)
 		return nullptr;
 	if (!cfg->loadXmsgNeN2hCfg(root))
 		return nullptr;
-	if (!cfg->loadKafkaProdCfg(root))
-		return nullptr;
 	if (!cfg->loadMiscCfg(root))
 		return nullptr;
 	LOG_INFO("load config file successful, cfg: %s", cfg->toString().c_str())
@@ -193,89 +191,6 @@ bool XmsgChannelStatusCfg::loadXmsgNeN2hCfg(XMLElement* root)
 	if (this->cfgPb->n2h().empty())
 	{
 		LOG_ERROR("load config failed, node: <ne-group-n2h><ne>")
-		return false;
-	}
-	return true;
-}
-
-bool XmsgChannelStatusCfg::loadMysqlCfg(XMLElement* root)
-{
-	XMLElement* node = root->FirstChildElement("mysql");
-	if (node == nullptr)
-	{
-		LOG_ERROR("load config failed, node: <mysql>")
-		return false;
-	}
-	string host;
-	auto mysql = this->cfgPb->mutable_mysql();
-	Misc::strAtt(node, "host", &host);
-	Misc::strAtt(node, "db", mysql->mutable_db());
-	Misc::strAtt(node, "usr", mysql->mutable_usr());
-	Misc::strAtt(node, "password", mysql->mutable_password());
-	mysql->set_poolsize(Misc::hexOrInt(node, "poolSize"));
-	int port;
-	if (!Net::str2ipAndPort(host.c_str(), mysql->mutable_host(), &port))
-	{
-		LOG_ERROR("load config failed, node: <mysql>, host format error: %s", host.c_str())
-		return false;
-	}
-	mysql->set_port(port);
-	if (mysql->db().empty() || mysql->usr().empty() || mysql->password().empty())
-	{
-		LOG_ERROR("load config failed, node: <mysql>")
-		return false;
-	}
-	return true;
-}
-
-bool XmsgChannelStatusCfg::loadMongodbCfg(XMLElement* root)
-{
-	XMLElement* node = root->FirstChildElement("mongodb");
-	if (node == nullptr)
-	{
-		LOG_ERROR("load config failed, node: <mongodb>")
-		return false;
-	}
-	auto mongodb = this->cfgPb->mutable_mongodb();
-	Misc::strAtt(node, "uri", mongodb->mutable_uri());
-	if (mongodb->uri().empty())
-	{
-		LOG_ERROR("load config failed, node: <mongodb>")
-		return false;
-	}
-	return true;
-}
-
-bool XmsgChannelStatusCfg::loadKafkaProdCfg(XMLElement* root)
-{
-	auto node = root->FirstChildElement("kafka-prod");
-	if (node == NULL)
-	{
-		LOG_ERROR("load config failed, node: <kafka-prod>")
-		return false;
-	}
-	auto prod = this->cfgPb->mutable_kafkaprod();
-	node = node->FirstChildElement("kv");
-	while (node != NULL)
-	{
-		string key = Misc::strAtt(node, "key");
-		string val = Misc::strAtt(node, "val");
-		if (key.empty() || val.empty())
-		{
-			LOG_ERROR("load config failed, node: <kafka-prod>")
-			return false;
-		}
-		XmsgMisc::insertKv(prod, key, val);
-		node = node->NextSiblingElement("kv");
-	}
-	if (prod->find("bootstrap.servers") == prod->end())
-	{
-		LOG_ERROR("load config failed, node: <kafka-prod>, missing required parameter: bootstrap.servers")
-		return false;
-	}
-	if (prod->find("topic") == prod->end())
-	{
-		LOG_ERROR("load config failed, node: <kafka-prod>, missing required parameter: topic")
 		return false;
 	}
 	return true;
